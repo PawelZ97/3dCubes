@@ -209,16 +209,16 @@ var screen3D = new function () {
 
 
         if (key.front) {
-            cam.moveZ(initsize);
+            cam.moveFB(initsize);
         }
         if (key.back) {
-            cam.moveZ(-initsize);
+            cam.moveFB(-initsize);
         }
         if (key.left) {
-            cam.moveX(-initsize);
+            cam.moveLR(-initsize);
         }
         if (key.right) {
-            cam.moveX(initsize);
+            cam.moveLR(initsize);
         }
         if (key.up) {
             cam.moveY(-initsize);
@@ -290,54 +290,29 @@ function camera(x, y, z, xo, yo, zo, zoom) {
     };
     this.zoom = zoom;
 }
-camera.prototype.moveZ = function (z) {
-    var tz = z;
-
+camera.prototype.moveFB = function (v) {
     var cosy = Math.cos(-this.orientation.y);
     var siny = Math.sin(-this.orientation.y);
 
-    var nx = (-siny * (tz));
-    var nz = (cosy * (tz));
+    var nx = (-siny * (v));
+    var nz = (cosy * (v));
 
     this.position.x += nx;
     this.position.z += nz;
 };
-camera.prototype.moveX = function (x) {
-    var tx = x;
-
-    var cosx = Math.cos(0);
+camera.prototype.moveLR = function (v) {
     var cosy = Math.cos(-this.orientation.y);
-    var cosz = Math.cos(-this.orientation.z);
-    var sinx = Math.sin(0);
     var siny = Math.sin(-this.orientation.y);
-    var sinz = Math.sin(-this.orientation.z);
 
-    var nx = (cosy * (cosz * (tx)));
-    var ny = (sinx * (siny * (cosz * (tx))) + cosx * (-sinz * (tx)));
-    var nz = (cosx * (siny * (cosz * (tx))) - sinx * (-sinz * (tx)));
+    var nx = (cosy * (v));
+    var nz = (siny * (v));
 
     this.position.x += nx;
-    this.position.y += ny;
     this.position.z += nz;
 };
 
 camera.prototype.moveY = function (y) {
-    var ty = y;
-
-    var cosx = Math.cos(0);
-    var cosy = Math.cos(-this.orientation.y);
-    var cosz = Math.cos(-this.orientation.z);
-    var sinx = Math.sin(0);
-    var siny = Math.sin(-this.orientation.y);
-    var sinz = Math.sin(-this.orientation.z);
-
-    var nx = (cosy * (sinz * (ty)));
-    var ny = (sinx * (siny * (sinz * (ty))) + cosx * (cosz * (ty)));
-    var nz = (cosx * (siny * (sinz * (ty))) - sinx * (cosz * (ty)));
-
-    this.position.x += nx;
-    this.position.y += ny;
-    this.position.z += nz;
+    this.position.y += y;
 };
 
 function point(x, y, z) {
