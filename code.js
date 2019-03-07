@@ -71,7 +71,7 @@ var screen3D = new function () {
 
     var renderPool = [];
 
-    var cam1 = new camera(150, -200, -200, -0.5, 0, 0, 1.5, -2);
+    var cam1 = new camera(150, -200, -200, -0.5, 0, 0, 1.5);
 
     this.initialize = function () {
 
@@ -272,7 +272,7 @@ var screen3D = new function () {
     }
 };
 
-function camera(xpos, ypos, zpos, xori, yori, zori, zoom, stereo) {
+function camera(xpos, ypos, zpos, xori, yori, zori, zoom) {
     this.position = {
         x: xpos,
         y: ypos,
@@ -284,8 +284,7 @@ function camera(xpos, ypos, zpos, xori, yori, zori, zoom, stereo) {
         z: zori
     };
     this.zoom = zoom;
-    this.stereo = stereo || 0;
-};
+}
 camera.prototype.move = function (z) {
     var tx = 0;
     var ty = 0;
@@ -298,8 +297,8 @@ camera.prototype.move = function (z) {
     var siny = Math.sin(-this.orientation.y);
     var sinz = Math.sin(0);
 
-    var nx = (cosy * (sinz * (ty) + cosz * (tx)) - siny * (tz));
-    var nz = (cosx * (cosy * (tz) + siny * (sinz * (ty) + cosz * (tx))) - sinx * (cosz * (ty) - sinz * (tx)));
+    var nx = (-siny * (tz));
+    var nz = (/*cosx * */(cosy * (tz)));
 
     this.position.x += nx;
     this.position.z += nz;
@@ -317,9 +316,13 @@ camera.prototype.pan = function (x, y) {
     var siny = Math.sin(-this.orientation.y);
     var sinz = Math.sin(-this.orientation.z);
 
-    var nx = (cosy * (sinz * (ty) + cosz * (tx)) - siny * (tz));
-    var ny = (sinx * (cosy * (tz) + siny * (sinz * (ty) + cosz * (tx))) + cosx * (cosz * (ty) - sinz * (tx)));
-    var nz = (cosx * (cosy * (tz) + siny * (sinz * (ty) + cosz * (tx))) - sinx * (cosz * (ty) - sinz * (tx)));
+    var nx = (cosy * (sinz * (ty) + cosz * (tx)));
+    var ny = (sinx * (siny * (sinz * (ty) + cosz * (tx))) + cosx * (cosz * (ty) - sinz * (tx)));
+    var nz = (cosx * (siny * (sinz * (ty) + cosz * (tx))) - sinx * (cosz * (ty) - sinz * (tx)));
+
+    // var nx = (cosy * (sinz * (ty) + cosz * (tx)) - siny * (tz));
+    // var ny = (sinx * (cosy * (tz) + siny * (sinz * (ty) + cosz * (tx))) + cosx * (cosz * (ty) - sinz * (tx)));
+    // var nz = (cosx * (cosy * (tz) + siny * (sinz * (ty) + cosz * (tx))) - sinx * (cosz * (ty) - sinz * (tx)));
 
     this.position.x += nx;
     this.position.y += ny;
@@ -333,27 +336,6 @@ function point(x, y, z) {
         z: z
     };
     this.tempIndex = 0;
-};
-
-point.prototype.rotate = function (x, y, z, xr, yr, zr) {
-    var tx = this.position.x - x;
-    var ty = this.position.y - y;
-    var tz = this.position.z - z;
-
-    var cosx = Math.cos(xr);
-    var cosy = Math.cos(yr);
-    var cosz = Math.cos(zr);
-    var sinx = Math.sin(xr);
-    var siny = Math.sin(yr);
-    var sinz = Math.sin(zr);
-
-    var nx = (cosy * (sinz * (ty) + cosz * (tx)) - siny * (tz));
-    var ny = (sinx * (cosy * (tz) + siny * (sinz * (ty) + cosz * (tx))) + cosx * (cosz * (ty) - sinz * (tx)));
-    var nz = (cosx * (cosy * (tz) + siny * (sinz * (ty) + cosz * (tx))) - sinx * (cosz * (ty) - sinz * (tx)));
-
-    this.position.x = nx + x;
-    this.position.y = ny + y;
-    this.position.z = nz + z;
 };
 
 point.prototype.getScreenCoords = function (c) {
@@ -375,8 +357,8 @@ point.prototype.getScreenCoords = function (c) {
 
     this.tempIndex = nz;
     return {
-        x: (((nx + c.stereo) * (c.zoom / nz)) * (screen.height / 2)) + (screen.width / 2),
-        y: (((ny + c.stereo) * (c.zoom / nz)) * (screen.height / 2)) + (screen.height / 2),
+        x: (((nx) * (c.zoom / nz)) * (screen.height / 2)) + (screen.width / 2),
+        y: (((ny) * (c.zoom / nz)) * (screen.height / 2)) + (screen.height / 2),
         distance: nz
     };
 };
@@ -389,16 +371,11 @@ point.prototype.render = function (cam, cont) {
 
 function line(p1, p2) {
     this.points = new Array;
-    this.points[0] = p1 || new point(0, 0, 0);
-    this.points[1] = p2 || new point(0, 0, 0);
+    this.points[0] = p1;
+    this.points[1] = p2;
     this.tempIndex = 0;
 };
-// line.prototype.rotate = function (x, y, z, xr, yr, zr) {
-//     for (var i = 0; i < this.points.length; i++) {
-//         this.points[i].rotate(x, y, z, xr, yr, zr);
-//     }
-//     ;
-// };
+
 line.prototype.getScreenCoords = function (c) {
     var screenCoords = this.points[0].getScreenCoords(c);
     this.tempIndex = this.points[0].tempIndex;
