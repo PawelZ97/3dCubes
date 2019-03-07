@@ -133,6 +133,14 @@ var screen3D = new function () {
                 key.right_rot = true;
                 event.preventDefault();
                 break;
+            // case 85:
+            //     key.z_left_rot = true;
+            //     event.preventDefault();
+            //     break;
+            // case 79:
+            //     key.z_right_rot = true;
+            //     event.preventDefault();
+            //     break;
             case 82:
                 key.up = true;
                 event.preventDefault();
@@ -186,6 +194,14 @@ var screen3D = new function () {
                 key.right_rot = false;
                 event.preventDefault();
                 break;
+            // case 85:
+            //     key.z_left_rot = false;
+            //     event.preventDefault();
+            //     break;
+            // case 79:
+            //     key.z_right_rot = false;
+            //     event.preventDefault();
+            //     break;
             case 82:
                 key.up = false;
                 event.preventDefault();
@@ -227,17 +243,23 @@ var screen3D = new function () {
             cam.moveY(initsize);
         }
         if (key.up_rot) {
-            cam.orientation.x += 0.03;
+            cam.rotation.x += 0.03;
         }
         if (key.down_rot) {
-            cam.orientation.x -= 0.03;
+            cam.rotation.x -= 0.03;
         }
         if (key.left_rot) {
-            cam.orientation.y -= 0.03;
+            cam.rotation.y -= 0.03;
         }
         if (key.right_rot) {
-            cam.orientation.y += 0.03;
+            cam.rotation.y += 0.03;
         }
+        // if (key.z_left_rot) {
+        //     cam.rotation.z += 0.03;
+        // }
+        // if (key.z_right_rot) {
+        //     cam.rotation.z -= 0.03;
+        // }
         if (key.zoom_in) {
             cam.zoom += 0.05;
         }
@@ -272,8 +294,7 @@ var screen3D = new function () {
         }
         renderPool = [];
 
-        //console.log(cam.position.x + ","+ cam.position.y + "," + cam.position.z + "," + cam.orientation.x +
-         //   "," + cam.orientation.y + "," + + cam.orientation.z + "," + cam.zoom);
+        //console.log(cam.position.x + ","+ cam.position.y + "," + cam.position.z + "," + cam.rotation.x + "," + cam.rotation.y + "," + + cam.rotation.z + "," + cam.zoom);
     }
 };
 
@@ -283,7 +304,7 @@ function camera(x, y, z, xo, yo, zo, zoom) {
         y: y,
         z: z
     };
-    this.orientation = {
+    this.rotation = {
         x: xo,
         y: yo,
         z: zo
@@ -291,8 +312,8 @@ function camera(x, y, z, xo, yo, zo, zoom) {
     this.zoom = zoom;
 }
 camera.prototype.moveFB = function (v) {
-    var cosy = Math.cos(-this.orientation.y);
-    var siny = Math.sin(-this.orientation.y);
+    var cosy = Math.cos(-this.rotation.y);
+    var siny = Math.sin(-this.rotation.y);
 
     var nx = (-siny * (v));
     var nz = (cosy * (v));
@@ -301,8 +322,8 @@ camera.prototype.moveFB = function (v) {
     this.position.z += nz;
 };
 camera.prototype.moveLR = function (v) {
-    var cosy = Math.cos(-this.orientation.y);
-    var siny = Math.sin(-this.orientation.y);
+    var cosy = Math.cos(-this.rotation.y);
+    var siny = Math.sin(-this.rotation.y);
 
     var nx = (cosy * (v));
     var nz = (siny * (v));
@@ -330,12 +351,12 @@ point.prototype.get2DCoords = function (c) {
     var dy = this.position.y - c.position.y;
     var dz = this.position.z - c.position.z;
 
-    var cosx = Math.cos(c.orientation.x);
-    var cosy = Math.cos(c.orientation.y);
-    var cosz = Math.cos(c.orientation.z);
-    var sinx = Math.sin(c.orientation.x);
-    var siny = Math.sin(c.orientation.y);
-    var sinz = Math.sin(c.orientation.z);
+    var cosx = Math.cos(c.rotation.x);
+    var cosy = Math.cos(c.rotation.y);
+    var cosz = Math.cos(c.rotation.z);
+    var sinx = Math.sin(c.rotation.x);
+    var siny = Math.sin(c.rotation.y);
+    var sinz = Math.sin(c.rotation.z);
 
     var nx = (cosy * (sinz * (dy) + cosz * (dx)) - siny * (dz));
     var ny = (sinx * (cosy * (dz) + siny * (sinz * (dy) + cosz * (dx))) + cosx * (cosz * (dy) - sinz * (dx)));
