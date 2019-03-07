@@ -71,7 +71,7 @@ var screen3D = new function () {
 
     var renderPool = [];
 
-    var cam1 = new camera(150, -200, -200, -0.5, 0, 0, 1.5);
+    var cam = new camera(150, -200, -200, -0.5, 0, 0, 1.5);
 
     this.initialize = function () {
 
@@ -85,7 +85,7 @@ var screen3D = new function () {
 
             windowResizeHandler();
 
-            setInterval(loop, 25);
+            setInterval(loop, 50);
 
         }
     };
@@ -208,42 +208,41 @@ var screen3D = new function () {
 
 
         if (key.front) {
-            cam1.move(initsize);
+            cam.move(initsize);
         }
         if (key.back) {
-            cam1.move(-initsize);
+            cam.move(-initsize);
         }
         if (key.left) {
-            cam1.pan(-initsize, 0);
+            cam.pan(-initsize);
         }
         if (key.right) {
-            cam1.pan(initsize, 0);
+            cam.pan(initsize);
         }
         if (key.up) {
-            cam1.pan(0, -initsize);
+            cam.heig(-initsize);
         }
         if (key.down) {
-            cam1.pan(0, initsize);
+            cam.heig(initsize);
         }
         if (key.up_rot) {
-            cam1.orientation.x += 0.03;
+            cam.orientation.x += 0.03;
         }
         if (key.down_rot) {
-            cam1.orientation.x -= 0.03;
+            cam.orientation.x -= 0.03;
         }
         if (key.left_rot) {
-            cam1.orientation.y -= 0.03;
+            cam.orientation.y -= 0.03;
         }
         if (key.right_rot) {
-            cam1.orientation.y += 0.03;
+            cam.orientation.y += 0.03;
         }
         if (key.zoom_in) {
-            cam1.zoom += 0.05;
+            cam.zoom += 0.05;
         }
         if (key.zoom_out) {
-            cam1.zoom -= 0.05;
+            cam.zoom -= 0.05;
         }
-
 
         var temp;
         for (var i = 0, len = objectPool.length; i < len; i++) {
@@ -252,7 +251,7 @@ var screen3D = new function () {
                 continue;
             }
 
-            temp = object.getScreenCoords(cam1);
+            temp = object.getScreenCoords(cam);
             if ((temp.x < -screen.width) || (temp.y < -screen.height) || (temp.x > screen.width * 2) || (temp.y > screen.height * 2) || (temp.distance < 0)) {
             } else {
                 renderPool.push(object);
@@ -266,9 +265,12 @@ var screen3D = new function () {
         contxt.clearRect(0, 0, screen.width, screen.height);
         for (var i = 0, len = renderPool.length; i < len; i++) {
             var object = renderPool[i];
-            object.render(cam1, contxt, 1);
+            object.render(cam, contxt, 1);
         }
         renderPool = [];
+
+        console.log(cam.position.x + ","+ cam.position.y + "," + cam.position.z + "," + cam.orientation.x +
+            "," + cam.orientation.y + "," + + cam.orientation.z + "," + cam.zoom);
     }
 };
 
@@ -286,8 +288,6 @@ function camera(xpos, ypos, zpos, xori, yori, zori, zoom) {
     this.zoom = zoom;
 }
 camera.prototype.move = function (z) {
-    var tx = 0;
-    var ty = 0;
     var tz = z;
 
     var cosx = Math.cos(-this.orientation.x);
@@ -298,14 +298,33 @@ camera.prototype.move = function (z) {
     var sinz = Math.sin(0);
 
     var nx = (-siny * (tz));
-    var nz = (/*cosx * */(cosy * (tz)));
+    var nz = (cosx * (cosy * (tz)));
 
     this.position.x += nx;
     this.position.z += nz;
 };
-camera.prototype.pan = function (x, y) {
-
+camera.prototype.pan = function (x) {
     var tx = x;
+
+    var cosx = Math.cos(0);
+    var cosy = Math.cos(-this.orientation.y);
+    var cosz = Math.cos(-this.orientation.z);
+    var sinx = Math.sin(0);
+    var siny = Math.sin(-this.orientation.y);
+    var sinz = Math.sin(-this.orientation.z);
+
+    var nx = (cosy * (cosz * (tx)));
+    var ny = (sinx * (siny * (cosz * (tx))) + cosx * (-sinz * (tx)));
+    var nz = (cosx * (siny * (cosz * (tx))) - sinx * (-sinz * (tx)));
+
+    this.position.x += nx;
+    this.position.y += ny;
+    this.position.z += nz;
+};
+
+camera.prototype.heig = function (y) {
+
+    var tx = 0;
     var ty = y;
     var tz = 0;
 
@@ -316,13 +335,9 @@ camera.prototype.pan = function (x, y) {
     var siny = Math.sin(-this.orientation.y);
     var sinz = Math.sin(-this.orientation.z);
 
-    var nx = (cosy * (sinz * (ty) + cosz * (tx)));
-    var ny = (sinx * (siny * (sinz * (ty) + cosz * (tx))) + cosx * (cosz * (ty) - sinz * (tx)));
-    var nz = (cosx * (siny * (sinz * (ty) + cosz * (tx))) - sinx * (cosz * (ty) - sinz * (tx)));
-
-    // var nx = (cosy * (sinz * (ty) + cosz * (tx)) - siny * (tz));
-    // var ny = (sinx * (cosy * (tz) + siny * (sinz * (ty) + cosz * (tx))) + cosx * (cosz * (ty) - sinz * (tx)));
-    // var nz = (cosx * (cosy * (tz) + siny * (sinz * (ty) + cosz * (tx))) - sinx * (cosz * (ty) - sinz * (tx)));
+    var nx = (cosy * (sinz * (ty)));
+    var ny = (sinx * (siny * (sinz * (ty))) + cosx * (cosz * (ty)));
+    var nz = (cosx * (siny * (sinz * (ty))) - sinx * (cosz * (ty)));
 
     this.position.x += nx;
     this.position.y += ny;
