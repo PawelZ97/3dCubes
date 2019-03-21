@@ -133,14 +133,6 @@ var screen3D = new function () {
                 key.right_rot = true;
                 event.preventDefault();
                 break;
-            // case 85:
-            //     key.z_left_rot = true;
-            //     event.preventDefault();
-            //     break;
-            // case 79:
-            //     key.z_right_rot = true;
-            //     event.preventDefault();
-            //     break;
             case 82:
                 key.up = true;
                 event.preventDefault();
@@ -194,14 +186,6 @@ var screen3D = new function () {
                 key.right_rot = false;
                 event.preventDefault();
                 break;
-            // case 85:
-            //     key.z_left_rot = false;
-            //     event.preventDefault();
-            //     break;
-            // case 79:
-            //     key.z_right_rot = false;
-            //     event.preventDefault();
-            //     break;
             case 82:
                 key.up = false;
                 event.preventDefault();
@@ -254,12 +238,6 @@ var screen3D = new function () {
         if (key.right_rot) {
             cam.rotation.y += 0.03;
         }
-        // if (key.z_left_rot) {
-        //     cam.rotation.z += 0.03;
-        // }
-        // if (key.z_right_rot) {
-        //     cam.rotation.z -= 0.03;
-        // }
         if (key.zoom_in) {
             cam.zoom += 0.05;
         }
@@ -267,7 +245,7 @@ var screen3D = new function () {
             cam.zoom -= 0.05;
         }
 
-        var ptn, pt2;
+        let ptn, ptn2;
         for (var i = 0, len = objectPool.length; i < len; i++) {
             var object = objectPool[i];
             if (typeof object === 'undefined') {
@@ -275,9 +253,9 @@ var screen3D = new function () {
             }
 
             ptn = object.get2DCoords(cam ,0);
-            pt2 = object.get2DCoords(cam ,1);
+            ptn2 = object.get2DCoords(cam ,1);
             if ((ptn.x < -screen.width) || (ptn.y < -screen.height) || (ptn.x > screen.width * 2) || (ptn.y > screen.height * 2) || (ptn.distance < 0)
-            || (pt2.x < -screen.width) || (pt2.y < -screen.height) || (pt2.x > screen.width * 2) || (pt2.y > screen.height * 2) || (pt2.distance < 0)) {
+            || (ptn2.x < -screen.width) || (ptn2.y < -screen.height) || (ptn2.x > screen.width * 2) || (ptn2.y > screen.height * 2) || (ptn2.distance < 0)) {
             } else {
                 renderPool.push(object);
             }
@@ -342,7 +320,7 @@ function point(x, y, z) {
         y: y,
         z: z
     };
-    this.tempIndex = 0;
+    //this.tempIndex = 0;
 };
 
 point.prototype.get2DCoords = function (c) {
@@ -363,7 +341,7 @@ point.prototype.get2DCoords = function (c) {
     var nz = (cosx * (cosy * (dz) + siny * (sinz * (dy) + cosz * (dx))) - sinx * (cosz * (dy) - sinz * (dx)));
 
 
-    this.tempIndex = nz;
+    //this.tempIndex = nz;
     return {
         x: (((nx) * (c.zoom / nz)) * (screen.height / 2)) + (screen.width / 2),
         y: (((ny) * (c.zoom / nz)) * (screen.height / 2)) + (screen.height / 2),
@@ -375,12 +353,12 @@ function line(p1, p2) {
     this.points = new Array;
     this.points[0] = p1;
     this.points[1] = p2;
-    this.tempIndex = 0;
+    //this.tempIndex = 0;
 };
 
-line.prototype.get2DCoords = function (c, i) {
-    var screenCoords = this.points[i].get2DCoords(c);
-    this.tempIndex = this.points[i].tempIndex;
+line.prototype.get2DCoords = function (cam, i) {
+    var screenCoords = this.points[i].get2DCoords(cam);
+    //this.tempIndex = this.points[i].tempIndex;
     return (screenCoords);
 };
 line.prototype.render = function (cam, cont) {
