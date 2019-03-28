@@ -28,51 +28,65 @@ var screen3D = new function () {
 
     var objectPool = [];
 
-    var scale = 100;
+    var multip = 100;
 
     var initsize = 10;
 
     var j = 0;
 
+    function Cube(x, y, z, x_size, y_size, z_size, multip) {
+        this.position = {
+            x: x,
+            y: y,
+            z: z
+        };
+        this.size = {
+            x: x_size * multip,
+            y: y_size * multip,
+            z: z_size * multip,
+        };
+        this.vertices = [new Point(x, y, z), new Point(x+this.size.x,y,z), new Point(x+this.size.x,y,z+this.size.z), new Point(x,y,z+this.size.z),
+            new Point(x, y+this.size.y, z), new Point(x+this.size.x,y+this.size.y,z), new Point(x+this.size.x,y+this.size.y,z+this.size.z), new Point(x,y+this.size.y,z+this.size.z)];
 
-    for (var i = 0; i < 400; i += 2*scale) {
+        this.lines = [new Line(this.vertices[0],this.vertices[1]), new Line(this.vertices[1],this.vertices[2]),
+            new Line(this.vertices[2],this.vertices[3]),new Line(this.vertices[3],this.vertices[0]),
 
-            j = 0;
-            objectPool.push(new line(new point(0 + i, 0, 0 + j), new point(0 + i, 0, scale + j)));
-            objectPool.push(new line(new point(0 + i, 0, scale + j), new point(scale + i, 0, scale + j)));
-            objectPool.push(new line(new point(scale + i, 0, scale + j), new point(scale + i, 0, 0 + j)));
-            objectPool.push(new line(new point(0 + i, 0, 0 + j), new point(scale + i, 0, 0 + j)));
+            new Line(this.vertices[4],this.vertices[5]),new Line(this.vertices[5],this.vertices[6]),
+            new Line(this.vertices[6],this.vertices[7]),new Line(this.vertices[7],this.vertices[4]),
 
-            objectPool.push(new line(new point(0 + i, -scale, 0), new point(0 + i, -scale, scale + j)));
-            objectPool.push(new line(new point(0 + i, -scale, scale), new point(scale+ i, -scale, scale + j)));
-            objectPool.push(new line(new point(scale + i, -scale, scale), new point(scale+ i, -scale, 0 + j)));
-            objectPool.push(new line(new point(0 + i, -scale, 0), new point(scale+ i, -scale, 0 + j)));
+            new Line(this.vertices[0],this.vertices[4]),new Line(this.vertices[1],this.vertices[5]),
+            new Line(this.vertices[2],this.vertices[6]),new Line(this.vertices[3],this.vertices[7])];
 
-            objectPool.push(new line(new point(0 + i, 0, 0 + j), new point(0+ i, -scale, 0 + j)));
-            objectPool.push(new line(new point(0 + i, 0, scale + j), new point(0 + i, -scale, scale + j)));
-            objectPool.push(new line(new point(scale + i, 0, scale + j), new point(scale + i, -scale, scale + j)));
-            objectPool.push(new line(new point(scale + i, 0, 0 + j), new point(scale + i, -scale, 0 + j)));
-
-            j = 200;
-            objectPool.push(new line(new point(0 + i, 0, 0 + j), new point(0 + i, 0, scale + j)));
-            objectPool.push(new line(new point(0 + i, 0,  scale + j), new point(scale + i, 0, scale + j)));
-            objectPool.push(new line(new point(scale + i, 0, scale + j), new point(scale + i, 0, 0 + j)));
-            objectPool.push(new line(new point(0 + i, 0, 0 + j), new point(scale + i, 0, 0 + j)));
-
-            objectPool.push(new line(new point(0 + i, -2*scale, 0 + j), new point(0 + i, -2*scale, scale + j)));
-            objectPool.push(new line(new point(0 + i, -2*scale, scale + j), new point(scale+ i, -2*scale, scale + j)));
-            objectPool.push(new line(new point(scale + i, -2*scale, scale+ j), new point(scale+ i, -2*scale, 0 + j)));
-            objectPool.push(new line(new point(0 + i, -2*scale, 0 + j), new point(scale+ i, -2*scale, 0 + j)));
-
-            objectPool.push(new line(new point(0 + i, 0, 0 + j), new point(0 + i, -2*scale, 0 + j)));
-            objectPool.push(new line(new point(0 + i, 0, scale + j), new point(0 + i, -2*scale, scale + j)));
-            objectPool.push(new line(new point(scale + i, 0, scale + j), new point(scale + i, -2*scale, scale + j)));
-            objectPool.push(new line(new point(scale + i, 0, 0 + j), new point(scale + i, -2*scale, 0 + j)));
+        this.walls = [new wall(this.vertices[0],this.vertices[1],this.vertices[2],this.vertices[3]),
+            new wall(this.vertices[0],this.vertices[1],this.vertices[5],this.vertices[4]),
+            new wall(this.vertices[1],this.vertices[2],this.vertices[6],this.vertices[5]),
+            new wall(this.vertices[2],this.vertices[3],this.vertices[7],this.vertices[6]),
+            new wall(this.vertices[3],this.vertices[0],this.vertices[4],this.vertices[7]),
+            new wall(this.vertices[4],this.vertices[5],this.vertices[6],this.vertices[7])]
     }
+
+    function wall(p1, p2, p3, p4) {
+        this.points = new Array;
+        this.points[0] = p1;
+        this.points[1] = p2;
+        this.points[3] = p3;
+        this.points[4] = p4;
+    }
+
+
+    // let cubeZero = new Cube(-10, 10,-10,20,-20,20,1);
+    // cubeZero.lines.forEach(line => objectPool.push(line));
+
+    let cubes = [ new Cube(0,0,0,1,-1,1,100),
+        new Cube(200,0,0,1,-1,1,100),
+        new Cube(0,0,200,1,-2,1,100),
+        new Cube(200,0,200,1,-2,1,100)]
+
+    cubes.forEach(cube => cube.lines.forEach(line => objectPool.push(line)));
 
     var renderPool = [];
 
-    var cam = new camera(150, -200, -200, -0.5, 0, 0, 1.5);
+    var cam = new Camera(150, -200, -200, -0.5, 0, 0, 1.5);
 
     this.initialize = function () {
 
@@ -276,7 +290,7 @@ var screen3D = new function () {
     }
 };
 
-function camera(x, y, z, xo, yo, zo, zoom) {
+function Camera(x, y, z, xo, yo, zo, zoom) {
     this.position = {
         x: x,
         y: y,
@@ -289,7 +303,7 @@ function camera(x, y, z, xo, yo, zo, zoom) {
     };
     this.zoom = zoom;
 }
-camera.prototype.moveFB = function (v) {
+Camera.prototype.moveFB = function (v) {
     var cosy = Math.cos(-this.rotation.y);
     var siny = Math.sin(-this.rotation.y);
 
@@ -299,7 +313,7 @@ camera.prototype.moveFB = function (v) {
     this.position.x += nx;
     this.position.z += nz;
 };
-camera.prototype.moveLR = function (v) {
+Camera.prototype.moveLR = function (v) {
     var cosy = Math.cos(-this.rotation.y);
     var siny = Math.sin(-this.rotation.y);
 
@@ -310,20 +324,20 @@ camera.prototype.moveLR = function (v) {
     this.position.z += nz;
 };
 
-camera.prototype.moveY = function (y) {
+Camera.prototype.moveY = function (y) {
     this.position.y += y;
 };
 
-function point(x, y, z) {
+function Point(x, y, z) {
     this.position = {
         x: x,
         y: y,
         z: z
     };
     //this.tempIndex = 0;
-};
+}
 
-point.prototype.get2DCoords = function (c) {
+Point.prototype.get2DCoords = function (c) {
 
     var dx = this.position.x - c.position.x;
     var dy = this.position.y - c.position.y;
@@ -349,19 +363,19 @@ point.prototype.get2DCoords = function (c) {
     };
 };
 
-function line(p1, p2) {
+function Line(p1, p2) {
     this.points = new Array;
     this.points[0] = p1;
     this.points[1] = p2;
     //this.tempIndex = 0;
 };
 
-line.prototype.get2DCoords = function (cam, i) {
+Line.prototype.get2DCoords = function (cam, i) {
     var screenCoords = this.points[i].get2DCoords(cam);
     //this.tempIndex = this.points[i].tempIndex;
     return (screenCoords);
 };
-line.prototype.render = function (cam, cont) {
+Line.prototype.render = function (cam, cont) {
     var screenCoords = this.points[0].get2DCoords(cam,0);
     var screenCoords2 = this.points[1].get2DCoords(cam,0);
     cont.beginPath();
