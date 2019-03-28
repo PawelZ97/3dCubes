@@ -231,6 +231,15 @@ let screen3D = new function () {
         contxt.fillStyle = "rgba(0,0,0,1)";
         contxt.clearRect(0, 0, screen.width, screen.height);
 
+
+        cubes[0].walls[0].render(cam,contxt);
+        cubes[0].walls[3].render(cam,contxt);
+        cubes[3].walls[0].render(cam,contxt);
+        cubes[3].walls[3].render(cam,contxt);
+        cubes[2].walls[2].render(cam,contxt);
+        cubes[2].walls[4].render(cam,contxt);
+
+
         renderPool.forEach(object => {
             object.render(cam,contxt,1);
         });
@@ -292,32 +301,44 @@ function Cube(x, y, z, x_size, y_size, z_size, multip) {
         y: y_size * multip,
         z: z_size * multip,
     };
-    this.vertices = [new Point(x, y, z), new Point(x + this.size.x, y, z), new Point(x + this.size.x, y, z + this.size.z), new Point(x, y, z + this.size.z),
+    this.points = [new Point(x, y, z), new Point(x + this.size.x, y, z), new Point(x + this.size.x, y, z + this.size.z), new Point(x, y, z + this.size.z),
         new Point(x, y + this.size.y, z), new Point(x + this.size.x, y + this.size.y, z), new Point(x + this.size.x, y + this.size.y, z + this.size.z), new Point(x, y + this.size.y, z + this.size.z)];
 
-    this.lines = [new Line(this.vertices[0], this.vertices[1]), new Line(this.vertices[1], this.vertices[2]),
-        new Line(this.vertices[2], this.vertices[3]), new Line(this.vertices[3], this.vertices[0]),
+    this.lines = [new Line(this.points[0], this.points[1]), new Line(this.points[1], this.points[2]),
+        new Line(this.points[2], this.points[3]), new Line(this.points[3], this.points[0]),
 
-        new Line(this.vertices[4], this.vertices[5]), new Line(this.vertices[5], this.vertices[6]),
-        new Line(this.vertices[6], this.vertices[7]), new Line(this.vertices[7], this.vertices[4]),
+        new Line(this.points[4], this.points[5]), new Line(this.points[5], this.points[6]),
+        new Line(this.points[6], this.points[7]), new Line(this.points[7], this.points[4]),
 
-        new Line(this.vertices[0], this.vertices[4]), new Line(this.vertices[1], this.vertices[5]),
-        new Line(this.vertices[2], this.vertices[6]), new Line(this.vertices[3], this.vertices[7])];
+        new Line(this.points[0], this.points[4]), new Line(this.points[1], this.points[5]),
+        new Line(this.points[2], this.points[6]), new Line(this.points[3], this.points[7])];
 
-    this.walls = [new Wall(this.vertices[0], this.vertices[1], this.vertices[2], this.vertices[3]),
-        new Wall(this.vertices[0], this.vertices[1], this.vertices[5], this.vertices[4]),
-        new Wall(this.vertices[1], this.vertices[2], this.vertices[6], this.vertices[5]),
-        new Wall(this.vertices[2], this.vertices[3], this.vertices[7], this.vertices[6]),
-        new Wall(this.vertices[3], this.vertices[0], this.vertices[4], this.vertices[7]),
-        new Wall(this.vertices[4], this.vertices[5], this.vertices[6], this.vertices[7])]
+    this.walls = [new Wall(this.points[0], this.points[1], this.points[2], this.points[3]),
+        new Wall(this.points[0], this.points[1], this.points[5], this.points[4]),
+        new Wall(this.points[1], this.points[2], this.points[6], this.points[5]),
+        new Wall(this.points[2], this.points[3], this.points[7], this.points[6]),
+        new Wall(this.points[3], this.points[0], this.points[4], this.points[7]),
+        new Wall(this.points[4], this.points[5], this.points[6], this.points[7])]
 }
 
 function Wall(p1, p2, p3, p4) {
     this.points = [p1, p2, p3, p4];
 }
 
-Wall.prototype.render = function (cam) {
-    console.log("0");
+Wall.prototype.render = function (cam, context) {
+    let pointsIn2D = [];
+    this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
+
+    context.fillStyle = '#baff82';
+    context.beginPath();
+    context.moveTo(pointsIn2D[0].x, pointsIn2D[0].y);
+    context.lineTo(pointsIn2D[1].x, pointsIn2D[1].y);
+    context.lineTo(pointsIn2D[2].x, pointsIn2D[2].y);
+    context.lineTo(pointsIn2D[3].x, pointsIn2D[3].y);
+    context.closePath();
+    context.fill();
+    context.stroke();
+
 };
 
 function Line(p1, p2) {
@@ -325,14 +346,14 @@ function Line(p1, p2) {
     //this.tempIndex = 0;
 }
 
-Line.prototype.render = function (cam, cont) {
+Line.prototype.render = function (cam, context) {
     let screenCoords = this.points[0].get2DCoords(cam);
     let screenCoords2 = this.points[1].get2DCoords(cam);
-    cont.beginPath();
-    cont.moveTo(screenCoords.x, screenCoords.y);
-    cont.lineTo(screenCoords2.x, screenCoords2.y);
-    cont.strokeStyle = '#0000FF';
-    cont.stroke();
+    context.beginPath();
+    context.moveTo(screenCoords.x, screenCoords.y);
+    context.lineTo(screenCoords2.x, screenCoords2.y);
+    context.strokeStyle = '#0000FF';
+    context.stroke();
 };
 
 function Point(x, y, z) {
