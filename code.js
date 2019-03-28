@@ -6,8 +6,13 @@ let screen3D = new function () {
         height: 100
     };
 
+    let refreshing = 50;
+    let movespeed = 10;
+
     let canvs;
     let contxt;
+
+    let cam = new Camera(150, -200, -200, -0.5, 0, 0, 1.5);
 
     let key = {
         front: false,
@@ -27,21 +32,16 @@ let screen3D = new function () {
     };
 
     let objectPool = [];
-    let initsize = 10;
-
-    // let cubeZero = new Cube(-10, 10,-10,20,-20,20,1);
-    // cubeZero.lines.forEach(line => objectPool.push(line));
 
     let cubes = [new Cube(0, 0, 0, 1, -1, 1, 100),
         new Cube(200, 0, 0, 1, -1, 1, 100),
         new Cube(0, 0, 200, 1, -2, 1, 100),
         new Cube(200, 0, 200, 1, -2, 1, 100)];
 
-    cubes.forEach(cube => cube.lines.forEach(line => objectPool.push(line)));
+    //cubes.forEach(cube => cube.lines.forEach(line => objectPool.push(line)));
+    cubes.forEach(cube => cube.walls.forEach(wall => objectPool.push(wall)));
 
     let renderPool = [];
-
-    let cam = new Camera(150, -200, -200, -0.5, 0, 0, 1.5);
 
     this.initialize = function () {
 
@@ -55,7 +55,7 @@ let screen3D = new function () {
 
             windowResizeHandler();
 
-            setInterval(loop, 50);
+            setInterval(loop, refreshing);
 
         }
     };
@@ -174,26 +174,27 @@ let screen3D = new function () {
         }
     }
 
+
     function loop() {
 
 
         if (key.front) {
-            cam.moveFB(initsize);
+            cam.moveFB(movespeed);
         }
         if (key.back) {
-            cam.moveFB(-initsize);
+            cam.moveFB(-movespeed);
         }
         if (key.left) {
-            cam.moveLR(-initsize);
+            cam.moveLR(-movespeed);
         }
         if (key.right) {
-            cam.moveLR(initsize);
+            cam.moveLR(movespeed);
         }
         if (key.up) {
-            cam.moveY(-initsize);
+            cam.moveY(-movespeed);
         }
         if (key.down) {
-            cam.moveY(initsize);
+            cam.moveY(movespeed);
         }
         if (key.up_rot) {
             cam.rotation.x += 0.03;
@@ -214,14 +215,31 @@ let screen3D = new function () {
             cam.zoom -= 0.05;
         }
 
-        objectPool.forEach((line) => {
-            let ptn = line.points[0].get2DCoords(cam);
-            let ptn2 = line.points[1].get2DCoords(cam);
-            if ((ptn.x < -screen.width) || (ptn.y < -screen.height) || (ptn.x > screen.width * 2) || (ptn.y > screen.height * 2) || (ptn.distance < 0)
-                || (ptn2.x < -screen.width) || (ptn2.y < -screen.height) || (ptn2.x > screen.width * 2) || (ptn2.y > screen.height * 2) || (ptn2.distance < 0)) {
-            } else {
-                renderPool.push(line);
-            }
+
+        //  LINE RENDER CHECK
+        //
+        // objectPool.forEach((line) => {
+        //     let ptn = line.points[0].get2DCoords(cam);
+        //     let ptn2 = line.points[1].get2DCoords(cam);
+        //     if ((ptn.x < -screen.width) || (ptn.y < -screen.height) || (ptn.x > screen.width * 2) || (ptn.y > screen.height * 2) || (ptn.distance < 0)
+        //         || (ptn2.x < -screen.width) || (ptn2.y < -screen.height) || (ptn2.x > screen.width * 2) || (ptn2.y > screen.height * 2) || (ptn2.distance < 0)) {
+        //     } else {
+        //         renderPool.push(line);
+        //     }
+        // });
+        
+        objectPool.forEach(wall => {
+            let pointsIn2D = [];
+            wall.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
+            let renderWallFlag = true;
+
+            pointsIn2D.forEach(point => {
+                if  ((point.x < -screen.width) || (point.y < -screen.height) || (point.x > screen.width * 2) || (point.y > screen.height * 2) || (point.distance < 0))
+                    renderWallFlag = false;
+            });
+
+            if (renderWallFlag)
+                renderPool.push(wall);
         });
 
         renderPool.sort(function (a, b) {
@@ -231,17 +249,8 @@ let screen3D = new function () {
         contxt.fillStyle = "rgba(0,0,0,1)";
         contxt.clearRect(0, 0, screen.width, screen.height);
 
-
-        cubes[0].walls[0].render(cam,contxt);
-        cubes[0].walls[3].render(cam,contxt);
-        cubes[3].walls[0].render(cam,contxt);
-        cubes[3].walls[3].render(cam,contxt);
-        cubes[2].walls[2].render(cam,contxt);
-        cubes[2].walls[4].render(cam,contxt);
-
-
         renderPool.forEach(object => {
-            object.render(cam,contxt,1);
+            object.render(cam, contxt);
         });
 
         renderPool = [];
