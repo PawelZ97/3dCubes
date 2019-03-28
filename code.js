@@ -227,7 +227,7 @@ let screen3D = new function () {
         //         renderPool.push(line);
         //     }
         // });
-        
+
         objectPool.forEach(wall => {
             let pointsIn2D = [];
             wall.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
