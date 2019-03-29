@@ -38,7 +38,6 @@ let screen3D = new function () {
         new Cube(0, 0, 200, 1, -2, 1, 100),
         new Cube(200, 0, 200, 1, -2, 1, 100)];
 
-    //cubes.forEach(cube => cube.lines.forEach(line => objectPool.push(line)));
     cubes.forEach(cube => cube.walls.forEach(wall => objectPool.push(wall)));
 
     let renderPool = [];
@@ -225,9 +224,9 @@ let screen3D = new function () {
             return wall.checkOnScreenVisibility(cam);
         });
 
-        // renderPool.sort(function (a, b) {
-        //     return b.tempIndex - a.tempIndex;
-        // });
+        renderPool.sort((wallA,wallB) => {
+            return wallB.getAvgDistance(cam) - wallA.getAvgDistance(cam);
+        });
 
         contxt.fillStyle = "rgba(0,0,0,1)";
         contxt.clearRect(0, 0, screen.width, screen.height);
@@ -237,7 +236,6 @@ let screen3D = new function () {
         });
 
         renderPool = [];
-        //console.log(cam.position.x + ","+ cam.position.y + "," + cam.position.z + "," + cam.rotation.x + "," + cam.rotation.y + "," + + cam.rotation.z + "," + cam.zoom);
     }
 };
 
@@ -358,9 +356,24 @@ Wall.prototype.checkOrientationVisibility = function (cam) {
     return (math.dot(vecNorm,vecCam) > 0);
 };
 
+Wall.prototype.getAvgDistance = function (cam) {
+    let pointsIn2D = [];
+    this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
+    let distances = [];
+    pointsIn2D.forEach(point => distances.push(point.distance));
+    let sum = 0;
+    let avgDistance = 0;
+
+    if (distances.length)
+    {
+        sum = distances.reduce(function(a, b) { return a + b; });
+        avgDistance = sum / distances.length;
+    }
+    return avgDistance;
+};
+
 function Line(p1, p2) {
     this.points = [p1, p2];
-    //this.tempIndex = 0;
 }
 
 Line.prototype.render = function (cam, context) {
@@ -379,7 +392,6 @@ function Point(x, y, z) {
         y: y,
         z: z
     };
-    //this.tempIndex = 0;
 }
 
 Point.prototype.get2DCoords = function (c) {
@@ -399,8 +411,6 @@ Point.prototype.get2DCoords = function (c) {
     let ny = (sinx * (cosy * (dz) + siny * (sinz * (dy) + cosz * (dx))) + cosx * (cosz * (dy) - sinz * (dx)));
     let nz = (cosx * (cosy * (dz) + siny * (sinz * (dy) + cosz * (dx))) - sinx * (cosz * (dy) - sinz * (dx)));
 
-
-    //this.tempIndex = nz;
     return {
         x: (((nx) * (c.zoom / nz)) * (screen.height / 2)) + (screen.width / 2),
         y: (((ny) * (c.zoom / nz)) * (screen.height / 2)) + (screen.height / 2),
