@@ -350,10 +350,29 @@ Wall.prototype.checkOrientationVisibility = function (cam) {
     let pCam = cam.position;
     let vecA = [p2.x - p1.x, p2.y - p1.y, p2.z - p1.z];
     let vecB = [p3.x - p2.x, p3.y - p2.y, p3.z - p2.z];
-    let vecNorm = math.cross(vecA, vecB);
+    let vecNorm = crossProduct(vecA, vecB);
     let vecCam = [pCam.x - p1.x, pCam.y - p1.y, pCam.z - p1.z];
-    return (math.dot(vecNorm,vecCam) > 0);
+    return (dotProduct(vecNorm,vecCam) > 0);
 };
+
+function dotProduct(ary1, ary2) {
+    if (ary1.length !== ary2.length)
+        return;
+    let dotprod = 0;
+    for (let i = 0; i < ary1.length; i++)
+        dotprod += ary1[i] * ary2[i];
+    return dotprod;
+}
+
+function crossProduct(a, b) {
+    if (a.length !== 3 || b.length !== 3) {
+        return;
+    }
+    return [a[1]*b[2] - a[2]*b[1],
+        a[2]*b[0] - a[0]*b[2],
+        a[0]*b[1] - a[1]*b[0]];
+}
+
 
 Wall.prototype.getAvgDistance = function (cam) {
     let pointsIn2D = [];
