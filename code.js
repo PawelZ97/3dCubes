@@ -12,7 +12,7 @@ let screen3D = new function () {
     let canvs;
     let contxt;
 
-    let cam = new Camera(150, -200, -200, -0.5, 0, 0, 1.5);
+    let cam = new Camera(150, -200, -200, -0.5, 0, 0, 1.0);
 
     let key = {
         front: false,
@@ -217,11 +217,11 @@ let screen3D = new function () {
         objectPool.forEach(wall => renderPool.push(wall));
 
         renderPool = renderPool.filter((wall) => {
-            return wall.checkOrientationVisibility(cam);
+            return wall.checkOnScreenVisibility(cam);
         });
 
         renderPool = renderPool.filter((wall) => {
-            return wall.checkOnScreenVisibility(cam);
+            return wall.checkOrientationVisibility(cam);
         });
 
         renderPool.sort((wallA,wallB) => {
@@ -302,7 +302,7 @@ function Cube(x, y, z, x_size, y_size, z_size, multip) {
         new Line(this.points[0], this.points[4]), new Line(this.points[1], this.points[5]),
         new Line(this.points[2], this.points[6]), new Line(this.points[3], this.points[7])];
 
-    this.walls = [new Wall(this.points[0], this.points[1], this.points[2], this.points[3]),
+    this.walls = [new Wall(this.points[3], this.points[2], this.points[1], this.points[0]),
         new Wall(this.points[0], this.points[1], this.points[5], this.points[4]),
         new Wall(this.points[1], this.points[2], this.points[6], this.points[5]),
         new Wall(this.points[2], this.points[3], this.points[7], this.points[6]),
@@ -352,7 +352,6 @@ Wall.prototype.checkOrientationVisibility = function (cam) {
     let vecB = [p3.x - p2.x, p3.y - p2.y, p3.z - p2.z];
     let vecNorm = math.cross(vecA, vecB);
     let vecCam = [pCam.x - p1.x, pCam.y - p1.y, pCam.z - p1.z];
-    console.log(math.dot(vecNorm,vecCam) > 0);
     return (math.dot(vecNorm,vecCam) > 0);
 };
 
@@ -394,26 +393,26 @@ function Point(x, y, z) {
     };
 }
 
-Point.prototype.get2DCoords = function (c) {
+Point.prototype.get2DCoords = function (cam) {
 
-    let dx = this.position.x - c.position.x;
-    let dy = this.position.y - c.position.y;
-    let dz = this.position.z - c.position.z;
+    let dx = this.position.x - cam.position.x;
+    let dy = this.position.y - cam.position.y;
+    let dz = this.position.z - cam.position.z;
 
-    let cosx = Math.cos(c.rotation.x);
-    let cosy = Math.cos(c.rotation.y);
-    let cosz = Math.cos(c.rotation.z);
-    let sinx = Math.sin(c.rotation.x);
-    let siny = Math.sin(c.rotation.y);
-    let sinz = Math.sin(c.rotation.z);
+    let cosx = Math.cos(cam.rotation.x);
+    let cosy = Math.cos(cam.rotation.y);
+    let cosz = Math.cos(cam.rotation.z);
+    let sinx = Math.sin(cam.rotation.x);
+    let siny = Math.sin(cam.rotation.y);
+    let sinz = Math.sin(cam.rotation.z);
 
     let nx = (cosy * (sinz * (dy) + cosz * (dx)) - siny * (dz));
     let ny = (sinx * (cosy * (dz) + siny * (sinz * (dy) + cosz * (dx))) + cosx * (cosz * (dy) - sinz * (dx)));
     let nz = (cosx * (cosy * (dz) + siny * (sinz * (dy) + cosz * (dx))) - sinx * (cosz * (dy) - sinz * (dx)));
 
     return {
-        x: (((nx) * (c.zoom / nz)) * (screen.height / 2)) + (screen.width / 2),
-        y: (((ny) * (c.zoom / nz)) * (screen.height / 2)) + (screen.height / 2),
+        x: (((nx) * (cam.zoom / nz)) * (screen.height / 2)) + (screen.width / 2),
+        y: (((ny) * (cam.zoom / nz)) * (screen.height / 2)) + (screen.height / 2),
         distance: nz
     };
 };
