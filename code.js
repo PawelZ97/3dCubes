@@ -6,6 +6,8 @@ let screen3D = new function () {
         height: 100
     };
 
+    console.log(math.sqrt(225));
+
     let refreshing = 50;
     let movespeed = 10;
 
