@@ -6,8 +6,6 @@ let screen3D = new function () {
         height: 100
     };
 
-    console.log(math.sqrt(225));
-
     let refreshing = 50;
     let movespeed = 10;
 
@@ -217,36 +215,19 @@ let screen3D = new function () {
             cam.zoom -= 0.05;
         }
 
+        objectPool.forEach(wall => renderPool.push(wall));
 
-        //  LINE RENDER CHECK
-        //
-        // objectPool.forEach((line) => {
-        //     let ptn = line.points[0].get2DCoords(cam);
-        //     let ptn2 = line.points[1].get2DCoords(cam);
-        //     if ((ptn.x < -screen.width) || (ptn.y < -screen.height) || (ptn.x > screen.width * 2) || (ptn.y > screen.height * 2) || (ptn.distance < 0)
-        //         || (ptn2.x < -screen.width) || (ptn2.y < -screen.height) || (ptn2.x > screen.width * 2) || (ptn2.y > screen.height * 2) || (ptn2.distance < 0)) {
-        //     } else {
-        //         renderPool.push(line);
-        //     }
+        renderPool = renderPool.filter((wall) => {
+            return wall.checkOrientationVisibility(cam);
+        });
+
+        renderPool = renderPool.filter((wall) => {
+            return wall.checkOnScreenVisibility(cam);
+        });
+
+        // renderPool.sort(function (a, b) {
+        //     return b.tempIndex - a.tempIndex;
         // });
-
-        objectPool.forEach(wall => {
-            let pointsIn2D = [];
-            wall.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
-            let renderWallFlag = true;
-
-            pointsIn2D.forEach(point => {
-                if  ((point.x < -screen.width) || (point.y < -screen.height) || (point.x > screen.width * 2) || (point.y > screen.height * 2) || (point.distance < 0))
-                    renderWallFlag = false;
-            });
-
-            if (renderWallFlag)
-                renderPool.push(wall);
-        });
-
-        renderPool.sort(function (a, b) {
-            return b.tempIndex - a.tempIndex;
-        });
 
         contxt.fillStyle = "rgba(0,0,0,1)";
         contxt.clearRect(0, 0, screen.width, screen.height);
@@ -256,7 +237,6 @@ let screen3D = new function () {
         });
 
         renderPool = [];
-
         //console.log(cam.position.x + ","+ cam.position.y + "," + cam.position.z + "," + cam.rotation.x + "," + cam.rotation.y + "," + + cam.rotation.z + "," + cam.zoom);
     }
 };
@@ -336,11 +316,11 @@ function Wall(p1, p2, p3, p4) {
     this.points = [p1, p2, p3, p4];
 }
 
-Wall.prototype.render = function (cam, context) {
+Wall.prototype.render = function (cam, context, color = '#baff82') {
     let pointsIn2D = [];
     this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
 
-    context.fillStyle = '#baff82';
+    context.fillStyle = color;
     context.beginPath();
     context.moveTo(pointsIn2D[0].x, pointsIn2D[0].y);
     context.lineTo(pointsIn2D[1].x, pointsIn2D[1].y);
@@ -350,6 +330,32 @@ Wall.prototype.render = function (cam, context) {
     context.fill();
     context.stroke();
 
+};
+
+Wall.prototype.checkOnScreenVisibility = function (cam) {
+    let pointsIn2D = [];
+    this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
+    let renderWallFlag = true;
+
+    pointsIn2D.forEach(point => {
+        if  ((point.x < -screen.width) || (point.y < -screen.height) || (point.x > screen.width * 2) || (point.y > screen.height * 2) || (point.distance < 0))
+            renderWallFlag = false;
+    });
+
+    return renderWallFlag;
+};
+
+Wall.prototype.checkOrientationVisibility = function (cam) {
+    let p1 = this.points[0].position;
+    let p2 = this.points[1].position;
+    let p3 = this.points[2].position;
+    let pCam = cam.position;
+    let vecA = [p2.x - p1.x, p2.y - p1.y, p2.z - p1.z];
+    let vecB = [p3.x - p2.x, p3.y - p2.y, p3.z - p2.z];
+    let vecNorm = math.cross(vecA, vecB);
+    let vecCam = [pCam.x - p1.x, pCam.y - p1.y, pCam.z - p1.z];
+    console.log(math.dot(vecNorm,vecCam) > 0);
+    return (math.dot(vecNorm,vecCam) > 0);
 };
 
 function Line(p1, p2) {
