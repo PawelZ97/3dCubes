@@ -380,7 +380,7 @@ function crossProduct(a, b) {
 }
 
 Wall.prototype.getWallParts = function () {
-    let split = 4;
+    let split = 10;
     let dHx = (this.points[1].position.x - this.points[0].position.x) / split;
     let dHy = (this.points[1].position.y - this.points[0].position.y) / split;
     let dHz = (this.points[1].position.z - this.points[0].position.z) / split;
