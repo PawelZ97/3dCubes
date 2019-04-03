@@ -1,3 +1,5 @@
+let debug = true;
+
 let screen3D = new function () {
     let screen = {
         x: 0,
@@ -35,8 +37,14 @@ let screen3D = new function () {
 
     let cubes = [new Cube(0, 0, 0, 1, -1, 1, 100),
         new Cube(200, 0, 0, 1, -1, 1, 100),
-        new Cube(0, 0, 200, 1, -2, 1, 100),
-        new Cube(200, 0, 200, 1, -2, 1, 100)];
+        new Cube(0, 0, 200, 1, -2, 1, 100)/*,
+        new Cube(200, 0, 200, 1, -2, 1, 100)*/];
+
+        for(let i = 0; i < 100; i+=20) {
+            cubes.push(new Cube(200, 0, 200+i, 100, -200, 7, 1))
+        }
+
+
 
     cubes.forEach(cube => cube.walls.forEach(wall => objectPool.push(wall)));
 
@@ -302,23 +310,31 @@ function Cube(x, y, z, x_size, y_size, z_size, multip) {
         new Line(this.points[0], this.points[4]), new Line(this.points[1], this.points[5]),
         new Line(this.points[2], this.points[6]), new Line(this.points[3], this.points[7])];
 
-    this.walls = [new Wall(this.points[3], this.points[2], this.points[1], this.points[0]),
-        new Wall(this.points[0], this.points[1], this.points[5], this.points[4]),
-        new Wall(this.points[1], this.points[2], this.points[6], this.points[5]),
-        new Wall(this.points[2], this.points[3], this.points[7], this.points[6]),
-        new Wall(this.points[3], this.points[0], this.points[4], this.points[7]),
-        new Wall(this.points[4], this.points[5], this.points[6], this.points[7])]
+    if (debug) {
+        this.wallscolors = ['#7800b2', '#00ff1c', '#ff9f00', '#0000FF', '#ff0002', '#d5ff00'];
+    }  else {
+        this.wallscolors = ['#baff82', '#baff82', '#baff82', '#baff82', '#baff82', '#baff82'];
+    }
+
+    this.walls = [new Wall(this.points[3], this.points[2], this.points[1], this.points[0], this.wallscolors[0]),
+        new Wall(this.points[0], this.points[1], this.points[5], this.points[4], this.wallscolors[1]),
+        new Wall(this.points[1], this.points[2], this.points[6], this.points[5], this.wallscolors[2]),
+        new Wall(this.points[2], this.points[3], this.points[7], this.points[6], this.wallscolors[3]),
+        new Wall(this.points[3], this.points[0], this.points[4], this.points[7], this.wallscolors[4]),
+        new Wall(this.points[4], this.points[5], this.points[6], this.points[7], this.wallscolors[5])]
 }
 
-function Wall(p1, p2, p3, p4) {
+
+function Wall(p1, p2, p3, p4, color) {
     this.points = [p1, p2, p3, p4];
+    this.color = color;
 }
 
-Wall.prototype.render = function (cam, context, color = '#baff82') {
+Wall.prototype.render = function (cam, context) {
     let pointsIn2D = [];
     this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
 
-    context.fillStyle = color;
+    context.fillStyle = this.color;
     context.beginPath();
     context.moveTo(pointsIn2D[0].x, pointsIn2D[0].y);
     context.lineTo(pointsIn2D[1].x, pointsIn2D[1].y);
