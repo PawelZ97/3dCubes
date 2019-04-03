@@ -40,15 +40,15 @@ let screen3D = new function () {
         new Cube(0, 0, 200, 1, -2, 1, 100)/*,
         new Cube(200, 0, 200, 1, -2, 1, 100)*/];
 
-        for(let i = 0; i < 100; i+=20) {
-            cubes.push(new Cube(200, 0, 200+i, 100, -200, 7, 1))
-        }
-
+    for (let i = 0; i < 100; i += 20) {
+        cubes.push(new Cube(200, 0, 200 + i, 100, -200, 7, 1))
+    }
 
 
     cubes.forEach(cube => cube.walls.forEach(wall => objectPool.push(wall)));
 
     let renderPool = [];
+    let renderPool2 = [];
 
     this.initialize = function () {
 
@@ -232,16 +232,13 @@ let screen3D = new function () {
             return wall.checkOrientationVisibility(cam);
         });
 
+        //console.log(renderPool);
 
-        let renderPool2 = [];
+        renderPool.forEach(wall => renderPool2.push.apply(renderPool2, wall.getWallParts()));
 
-        console.log(renderPool);
+        //console.log(renderPool2);
 
-        renderPool.forEach( wallContext => renderPool2.push.apply(renderPool2,wallContext.getWalls()));
-
-        console.log(renderPool2);
-
-        renderPool2.sort((wallA,wallB) => {
+        renderPool2.sort((wallA, wallB) => {
             return wallB.getAvgDistance(cam) - wallA.getAvgDistance(cam);
         });
 
@@ -253,6 +250,7 @@ let screen3D = new function () {
         });
 
         renderPool = [];
+        renderPool2 = [];
     }
 };
 
@@ -321,77 +319,37 @@ function Cube(x, y, z, x_size, y_size, z_size, multip) {
 
     if (debug) {
         this.wallscolors = ['#7800b2', '#00ff1c', '#ff9f00', '#0000FF', '#ff0002', '#d5ff00'];
-    }  else {
+    } else {
         this.wallscolors = ['#baff82', '#baff82', '#baff82', '#baff82', '#baff82', '#baff82'];
     }
 
-    this.walls = [new WallContext(this.points[3], this.points[2], this.points[1], this.points[0], this.wallscolors[0]),
-        new WallContext(this.points[0], this.points[1], this.points[5], this.points[4], this.wallscolors[1]),
-        new WallContext(this.points[1], this.points[2], this.points[6], this.points[5], this.wallscolors[2]),
-        new WallContext(this.points[2], this.points[3], this.points[7], this.points[6], this.wallscolors[3]),
-        new WallContext(this.points[3], this.points[0], this.points[4], this.points[7], this.wallscolors[4]),
-        new WallContext(this.points[4], this.points[5], this.points[6], this.points[7], this.wallscolors[5])]
+    this.walls = [new Wall(this.points[3], this.points[2], this.points[1], this.points[0], this.wallscolors[0]),
+        new Wall(this.points[0], this.points[1], this.points[5], this.points[4], this.wallscolors[1]),
+        new Wall(this.points[1], this.points[2], this.points[6], this.points[5], this.wallscolors[2]),
+        new Wall(this.points[2], this.points[3], this.points[7], this.points[6], this.wallscolors[3]),
+        new Wall(this.points[3], this.points[0], this.points[4], this.points[7], this.wallscolors[4]),
+        new Wall(this.points[4], this.points[5], this.points[6], this.points[7], this.wallscolors[5])]
 }
-
-function WallContext(p1, p2, p3, p4, color) {
-    this.points = [p1, p2, p3, p4];
-    this.color = color;
-}
-
-WallContext.prototype.getWalls = function () {
-    let dHx = (this.points[1].position.x - this.points[0].position.x) / 4;
-    let dHy = (this.points[1].position.y - this.points[0].position.y) / 4;
-    let dHz = (this.points[1].position.z - this.points[0].position.z) / 4;
-    let dVx = (this.points[3].position.x - this.points[0].position.x) / 4;
-    let dVy = (this.points[3].position.y - this.points[0].position.y) / 4;
-    let dVz = (this.points[3].position.z - this.points[0].position.z) / 4;
-    let walls = [];
-    let p1x = this.points[0].position.x;
-    let p1y = this.points[0].position.y;
-    let p1z = this.points[0].position.z;
-    for (let i = 0; i<4; i++) {
-        for (let j = 0; j < 4; j++) {
-            walls.push(new Wall(new Point(p1x + i * dHx + j * dVx ,p1y + i * dHy + j * dVy, p1z + i * dHz + j * dVz),new Point(p1x + (i + 1) * dHx + j * dVx ,p1y + (i + 1) * dHy + j * dVy, p1z + (i + 1) * dHz + j * dVz),new Point(p1x + (i + 1) * dHx + (j +1) * dVx ,p1y + (i + 1) * dHy + (j + 1) * dVy, p1z + (i + 1) * dHz + (j + 1) * dVz),new Point(p1x + i * dHx + (j +1) * dVx ,p1y + i * dHy + (j + 1) * dVy, p1z + i * dHz + (j + 1) * dVz),this.color));
-        }
-    }
-    return walls;
-};
 
 function Wall(p1, p2, p3, p4, color) {
     this.points = [p1, p2, p3, p4];
     this.color = color;
 }
 
-Wall.prototype.render = function (cam, context) {
-    let pointsIn2D = [];
-    this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
-
-    context.fillStyle = this.color;
-    context.beginPath();
-    context.moveTo(pointsIn2D[0].x, pointsIn2D[0].y);
-    context.lineTo(pointsIn2D[1].x, pointsIn2D[1].y);
-    context.lineTo(pointsIn2D[2].x, pointsIn2D[2].y);
-    context.lineTo(pointsIn2D[3].x, pointsIn2D[3].y);
-    context.closePath();
-    context.fill();
-    context.stroke();
-
-};
-
-WallContext.prototype.checkOnScreenVisibility = function (cam) {
+Wall.prototype.checkOnScreenVisibility = function (cam) {
     let pointsIn2D = [];
     this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
     let renderWallFlag = true;
 
     pointsIn2D.forEach(point => {
-        if  ((point.x < -screen.width) || (point.y < -screen.height) || (point.x > screen.width * 2) || (point.y > screen.height * 2) || (point.distance < 0))
+        if ((point.x < -screen.width) || (point.y < -screen.height) || (point.x > screen.width * 2) || (point.y > screen.height * 2) || (point.distance < 0))
             renderWallFlag = false;
     });
 
     return renderWallFlag;
 };
 
-WallContext.prototype.checkOrientationVisibility = function (cam) {
+Wall.prototype.checkOrientationVisibility = function (cam) {
     let p1 = this.points[0].position;
     let p2 = this.points[1].position;
     let p3 = this.points[2].position;
@@ -400,7 +358,7 @@ WallContext.prototype.checkOrientationVisibility = function (cam) {
     let vecB = [p3.x - p2.x, p3.y - p2.y, p3.z - p2.z];
     let vecNorm = crossProduct(vecA, vecB);
     let vecCam = [pCam.x - p1.x, pCam.y - p1.y, pCam.z - p1.z];
-    return (dotProduct(vecNorm,vecCam) > 0);
+    return (dotProduct(vecNorm, vecCam) > 0);
 };
 
 function dotProduct(ary1, ary2) {
@@ -416,13 +374,56 @@ function crossProduct(a, b) {
     if (a.length !== 3 || b.length !== 3) {
         return;
     }
-    return [a[1]*b[2] - a[2]*b[1],
-        a[2]*b[0] - a[0]*b[2],
-        a[0]*b[1] - a[1]*b[0]];
+    return [a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]];
 }
 
+Wall.prototype.getWallParts = function () {
+    let split = 4;
+    let dHx = (this.points[1].position.x - this.points[0].position.x) / split;
+    let dHy = (this.points[1].position.y - this.points[0].position.y) / split;
+    let dHz = (this.points[1].position.z - this.points[0].position.z) / split;
+    let dVx = (this.points[3].position.x - this.points[0].position.x) / split;
+    let dVy = (this.points[3].position.y - this.points[0].position.y) / split;
+    let dVz = (this.points[3].position.z - this.points[0].position.z) / split;
+    let walls = [];
+    let p1x = this.points[0].position.x;
+    let p1y = this.points[0].position.y;
+    let p1z = this.points[0].position.z;
+    for (let i = 0; i < split; i++) {
+        for (let j = 0; j < split; j++) {
+            walls.push(new WallPart(new Point(p1x + i * dHx + j * dVx, p1y + i * dHy + j * dVy, p1z + i * dHz + j * dVz),
+                new Point(p1x + (i + 1) * dHx + j * dVx, p1y + (i + 1) * dHy + j * dVy, p1z + (i + 1) * dHz + j * dVz),
+                new Point(p1x + (i + 1) * dHx + (j + 1) * dVx, p1y + (i + 1) * dHy + (j + 1) * dVy, p1z + (i + 1) * dHz + (j + 1) * dVz),
+                new Point(p1x + i * dHx + (j + 1) * dVx, p1y + i * dHy + (j + 1) * dVy, p1z + i * dHz + (j + 1) * dVz), this.color));
+        }
+    }
+    return walls;
+};
 
-Wall.prototype.getAvgDistance = function (cam) {
+function WallPart(p1, p2, p3, p4, color) {
+    this.points = [p1, p2, p3, p4];
+    this.color = color;
+}
+
+WallPart.prototype.render = function (cam, context) {
+    let pointsIn2D = [];
+    this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
+
+    context.fillStyle = this.color;
+    context.beginPath();
+    context.moveTo(pointsIn2D[0].x, pointsIn2D[0].y);
+    context.lineTo(pointsIn2D[1].x, pointsIn2D[1].y);
+    context.lineTo(pointsIn2D[2].x, pointsIn2D[2].y);
+    context.lineTo(pointsIn2D[3].x, pointsIn2D[3].y);
+    context.closePath();
+    context.fill();
+    context.stroke();
+
+};
+
+WallPart.prototype.getAvgDistance = function (cam) {
     let pointsIn2D = [];
     this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
     let distances = [];
@@ -430,9 +431,10 @@ Wall.prototype.getAvgDistance = function (cam) {
     let sum = 0;
     let avgDistance = 0;
 
-    if (distances.length)
-    {
-        sum = distances.reduce(function(a, b) { return a + b; });
+    if (distances.length) {
+        sum = distances.reduce(function (a, b) {
+            return a + b;
+        });
         avgDistance = sum / distances.length;
     }
     return avgDistance;
