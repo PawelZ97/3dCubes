@@ -383,7 +383,7 @@ function crossProduct(a, b) {
 }
 
 Wall.prototype.getWallParts = function () {
-    let split = 1;
+    let split = 10;
     let dHx = (this.points[1].position.x - this.points[0].position.x) / split;
     let dHy = (this.points[1].position.y - this.points[0].position.y) / split;
     let dHz = (this.points[1].position.z - this.points[0].position.z) / split;
@@ -484,7 +484,8 @@ Point.prototype.get2DCoords = function (cam) {
 
     return {
         x: (((nx) * (cam.zoom / nz)) * (screen.height / 2)) + (screen.width / 2),
-        y: (((ny) * (cam.zoom / nz)) * (screen.height / 2)) + (screen.height / 2)
+        y: (((ny) * (cam.zoom / nz)) * (screen.height / 2)) + (screen.height / 2),
+        distance: nz
     };
 };
 
