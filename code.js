@@ -1,4 +1,4 @@
-let debug = true;
+let debug = false;
 
 let screen3D = new function () {
     let screen = {
@@ -37,11 +37,14 @@ let screen3D = new function () {
 
     let cubes = [new Cube(0, 0, 0, 1, -1, 1, 100),
         new Cube(200, 0, 0, 1, -1, 1, 100),
-        new Cube(0, 0, 200, 1, -2, 1, 100)/*,
-        new Cube(200, 0, 200, 1, -2, 1, 100)*/];
+        new Cube(0, 0, 200, 1, -2, 1, 100)];
 
-    for (let i = 0; i < 100; i += 20) {
-        cubes.push(new Cube(200, 0, 200 + i, 100, -200, 7, 1))
+    if (debug) {
+        for (let i = 0; i < 100; i += 20) {
+            cubes.push(new Cube(200, 0, 200 + i, 100, -200, 7, 1))
+        }
+    } else {
+        cubes.push(new Cube(200, 0, 200, 1, -2, 1, 100));
     }
 
 
