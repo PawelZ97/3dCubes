@@ -1,5 +1,3 @@
-let debug = true;
-
 let screen3D = new function () {
     let screen = {
         x: 0,
@@ -10,6 +8,8 @@ let screen3D = new function () {
 
     let refreshing = 50;
     let movespeed = 10;
+
+    let do_split = true;
 
     let canvs;
     let contxt;
@@ -30,28 +30,25 @@ let screen3D = new function () {
         up: false,
         down: false,
         zoom_in: false,
-        zoom_out: false
+        zoom_out: false,
+        split_on: false,
+        split_off: false
     };
 
     let objectPool = [];
 
     let cubes = [new Cube(0, 0, 0, 1, -1, 1, 100),
-        new Cube(200, 0, 0, 1, -1, 1, 100),
-        new Cube(0, 0, 200, 1, -2, 1, 100)];
+        new Cube(0, 0, 200, 100, -180, 100, 1),
+        new Cube(200, 0, 200, 100, -180, 10, 1)];
 
-    if (debug) {
-        for (let i = 0; i < 100; i += 20) {
-            cubes.push(new Cube(200, 0, 200 + i, 100, -200, 7, 1))
-        }
-    } else {
-        cubes.push(new Cube(200, 0, 200, 1, -2, 1, 100));
+    for (let i = 0; i < 5; i++) {
+        cubes.push(new Cube(200, -1 * 40 * i, 220, 100, -20, 10, 1));
     }
-
 
     cubes.forEach(cube => cube.walls.forEach(wall => objectPool.push(wall)));
 
     let renderPool = [];
-    let renderPool2 = [];
+    let renderPoolParts = [];
 
     this.initialize = function () {
 
@@ -128,6 +125,14 @@ let screen3D = new function () {
                 key.zoom_out = true;
                 event.preventDefault();
                 break;
+            case 89:
+                key.split_on = true;
+                event.preventDefault();
+                break;
+            case 72:
+                key.split_off = true;
+                event.preventDefault();
+                break;
         }
     }
 
@@ -181,13 +186,19 @@ let screen3D = new function () {
                 key.zoom_out = false;
                 event.preventDefault();
                 break;
+            case 89:
+                key.split_on = false;
+                event.preventDefault();
+                break;
+            case 72:
+                key.split_off = false;
+                event.preventDefault();
+                break;
         }
     }
 
 
     function loop() {
-
-
         if (key.front) {
             cam.moveFB(movespeed);
         }
@@ -224,6 +235,12 @@ let screen3D = new function () {
         if (key.zoom_out) {
             cam.zoom -= 0.05;
         }
+        if (key.split_on) {
+            do_split = true;
+        }
+        if (key.split_off) {
+            do_split = false;
+        }
 
         objectPool.forEach(wall => renderPool.push(wall));
 
@@ -235,25 +252,25 @@ let screen3D = new function () {
             return wall.checkOrientationVisibility(cam);
         });
 
-        //console.log(renderPool);
+        if (do_split) {
+            renderPool.forEach(wall => renderPoolParts.push.apply(renderPoolParts, wall.getWallParts(10)));
+        } else {
+            renderPool.forEach(wall => renderPoolParts.push.apply(renderPoolParts, wall.getWallParts(1)));
+        }
 
-        renderPool.forEach(wall => renderPool2.push.apply(renderPool2, wall.getWallParts()));
-
-        //console.log(renderPool2);
-
-        renderPool2.sort((wallA, wallB) => {
+        renderPoolParts.sort((wallA, wallB) => {
             return wallB.getDistance(cam) - wallA.getDistance(cam);
         });
 
         contxt.fillStyle = "rgba(0,0,0,1)";
         contxt.clearRect(0, 0, screen.width, screen.height);
 
-        renderPool2.forEach(object => {
+        renderPoolParts.forEach(object => {
             object.render(cam, contxt);
         });
 
         renderPool = [];
-        renderPool2 = [];
+        renderPoolParts = [];
     }
 };
 
@@ -320,11 +337,7 @@ function Cube(x, y, z, x_size, y_size, z_size, multip) {
         new Line(this.points[0], this.points[4]), new Line(this.points[1], this.points[5]),
         new Line(this.points[2], this.points[6]), new Line(this.points[3], this.points[7])];
 
-    if (debug) {
-        this.wallscolors = ['#7800b2', '#00ff1c', '#ff9f00', '#0000FF', '#ff0002', '#d5ff00'];
-    } else {
-        this.wallscolors = ['#baff82', '#baff82', '#baff82', '#baff82', '#baff82', '#baff82'];
-    }
+    this.wallscolors = ['#7800b2', '#00ff1c', '#ff9f00', '#0000FF', '#ff0002', '#d5ff00'];
 
     this.walls = [new Wall(this.points[3], this.points[2], this.points[1], this.points[0], this.wallscolors[0]),
         new Wall(this.points[0], this.points[1], this.points[5], this.points[4], this.wallscolors[1]),
@@ -382,8 +395,7 @@ function crossProduct(a, b) {
         a[0] * b[1] - a[1] * b[0]];
 }
 
-Wall.prototype.getWallParts = function () {
-    let split = 10;
+Wall.prototype.getWallParts = function (split) {
     let dHx = (this.points[1].position.x - this.points[0].position.x) / split;
     let dHy = (this.points[1].position.y - this.points[0].position.y) / split;
     let dHz = (this.points[1].position.z - this.points[0].position.z) / split;
