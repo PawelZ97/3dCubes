@@ -1,4 +1,4 @@
-let debug = false;
+let debug = true;
 
 let screen3D = new function () {
     let screen = {
@@ -242,7 +242,7 @@ let screen3D = new function () {
         //console.log(renderPool2);
 
         renderPool2.sort((wallA, wallB) => {
-            return wallB.getAvgDistance(cam) - wallA.getAvgDistance(cam);
+            return wallB.getDistance(cam) - wallA.getDistance(cam);
         });
 
         contxt.fillStyle = "rgba(0,0,0,1)";
@@ -383,7 +383,7 @@ function crossProduct(a, b) {
 }
 
 Wall.prototype.getWallParts = function () {
-    let split = 10;
+    let split = 1;
     let dHx = (this.points[1].position.x - this.points[0].position.x) / split;
     let dHy = (this.points[1].position.y - this.points[0].position.y) / split;
     let dHz = (this.points[1].position.z - this.points[0].position.z) / split;
@@ -426,21 +426,21 @@ WallPart.prototype.render = function (cam, context) {
 
 };
 
-WallPart.prototype.getAvgDistance = function (cam) {
-    let pointsIn2D = [];
-    this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
-    let distances = [];
-    pointsIn2D.forEach(point => distances.push(point.distance));
-    let sum = 0;
-    let avgDistance = 0;
+WallPart.prototype.getDistance = function (cam) {
+    let dHx = (this.points[1].position.x - this.points[0].position.x) / 2;
+    let dHy = (this.points[1].position.y - this.points[0].position.y) / 2;
+    let dHz = (this.points[1].position.z - this.points[0].position.z) / 2;
+    let dVx = (this.points[3].position.x - this.points[0].position.x) / 2;
+    let dVy = (this.points[3].position.y - this.points[0].position.y) / 2;
+    let dVz = (this.points[3].position.z - this.points[0].position.z) / 2;
+    let p1x = this.points[0].position.x;
+    let p1y = this.points[0].position.y;
+    let p1z = this.points[0].position.z;
 
-    if (distances.length) {
-        sum = distances.reduce(function (a, b) {
-            return a + b;
-        });
-        avgDistance = sum / distances.length;
-    }
-    return avgDistance;
+    let center = new Point(p1x + dHx + dVx, p1y + dHy + dVy, p1z + dHz + dVz);
+    return Math.sqrt((center.position.x - cam.position.x) * (center.position.x - cam.position.x)
+        + (center.position.y - cam.position.y) * (center.position.y - cam.position.y)
+        + (center.position.z - cam.position.z) * (center.position.z - cam.position.z));
 };
 
 function Line(p1, p2) {
@@ -484,8 +484,7 @@ Point.prototype.get2DCoords = function (cam) {
 
     return {
         x: (((nx) * (cam.zoom / nz)) * (screen.height / 2)) + (screen.width / 2),
-        y: (((ny) * (cam.zoom / nz)) * (screen.height / 2)) + (screen.height / 2),
-        distance: nz
+        y: (((ny) * (cam.zoom / nz)) * (screen.height / 2)) + (screen.height / 2)
     };
 };
 
