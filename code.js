@@ -232,14 +232,23 @@ let screen3D = new function () {
             return wall.checkOrientationVisibility(cam);
         });
 
-        renderPool.sort((wallA,wallB) => {
+
+        let renderPool2 = [];
+
+        console.log(renderPool);
+
+        renderPool.forEach( wallContext => renderPool2.push.apply(renderPool2,wallContext.getWalls()));
+
+        console.log(renderPool2);
+
+        renderPool2.sort((wallA,wallB) => {
             return wallB.getAvgDistance(cam) - wallA.getAvgDistance(cam);
         });
 
         contxt.fillStyle = "rgba(0,0,0,1)";
         contxt.clearRect(0, 0, screen.width, screen.height);
 
-        renderPool.forEach(object => {
+        renderPool2.forEach(object => {
             object.render(cam, contxt);
         });
 
@@ -316,14 +325,37 @@ function Cube(x, y, z, x_size, y_size, z_size, multip) {
         this.wallscolors = ['#baff82', '#baff82', '#baff82', '#baff82', '#baff82', '#baff82'];
     }
 
-    this.walls = [new Wall(this.points[3], this.points[2], this.points[1], this.points[0], this.wallscolors[0]),
-        new Wall(this.points[0], this.points[1], this.points[5], this.points[4], this.wallscolors[1]),
-        new Wall(this.points[1], this.points[2], this.points[6], this.points[5], this.wallscolors[2]),
-        new Wall(this.points[2], this.points[3], this.points[7], this.points[6], this.wallscolors[3]),
-        new Wall(this.points[3], this.points[0], this.points[4], this.points[7], this.wallscolors[4]),
-        new Wall(this.points[4], this.points[5], this.points[6], this.points[7], this.wallscolors[5])]
+    this.walls = [new WallContext(this.points[3], this.points[2], this.points[1], this.points[0], this.wallscolors[0]),
+        new WallContext(this.points[0], this.points[1], this.points[5], this.points[4], this.wallscolors[1]),
+        new WallContext(this.points[1], this.points[2], this.points[6], this.points[5], this.wallscolors[2]),
+        new WallContext(this.points[2], this.points[3], this.points[7], this.points[6], this.wallscolors[3]),
+        new WallContext(this.points[3], this.points[0], this.points[4], this.points[7], this.wallscolors[4]),
+        new WallContext(this.points[4], this.points[5], this.points[6], this.points[7], this.wallscolors[5])]
 }
 
+function WallContext(p1, p2, p3, p4, color) {
+    this.points = [p1, p2, p3, p4];
+    this.color = color;
+}
+
+WallContext.prototype.getWalls = function () {
+    let dHx = (this.points[1].position.x - this.points[0].position.x) / 4;
+    let dHy = (this.points[1].position.y - this.points[0].position.y) / 4;
+    let dHz = (this.points[1].position.z - this.points[0].position.z) / 4;
+    let dVx = (this.points[3].position.x - this.points[0].position.x) / 4;
+    let dVy = (this.points[3].position.y - this.points[0].position.y) / 4;
+    let dVz = (this.points[3].position.z - this.points[0].position.z) / 4;
+    let walls = [];
+    let p1x = this.points[0].position.x;
+    let p1y = this.points[0].position.y;
+    let p1z = this.points[0].position.z;
+    for (let i = 0; i<4; i++) {
+        for (let j = 0; j < 4; j++) {
+            walls.push(new Wall(new Point(p1x + i * dHx + j * dVx ,p1y + i * dHy + j * dVy, p1z + i * dHz + j * dVz),new Point(p1x + (i + 1) * dHx + j * dVx ,p1y + (i + 1) * dHy + j * dVy, p1z + (i + 1) * dHz + j * dVz),new Point(p1x + (i + 1) * dHx + (j +1) * dVx ,p1y + (i + 1) * dHy + (j + 1) * dVy, p1z + (i + 1) * dHz + (j + 1) * dVz),new Point(p1x + i * dHx + (j +1) * dVx ,p1y + i * dHy + (j + 1) * dVy, p1z + i * dHz + (j + 1) * dVz),this.color));
+        }
+    }
+    return walls;
+};
 
 function Wall(p1, p2, p3, p4, color) {
     this.points = [p1, p2, p3, p4];
@@ -346,7 +378,7 @@ Wall.prototype.render = function (cam, context) {
 
 };
 
-Wall.prototype.checkOnScreenVisibility = function (cam) {
+WallContext.prototype.checkOnScreenVisibility = function (cam) {
     let pointsIn2D = [];
     this.points.forEach(point => pointsIn2D.push(point.get2DCoords(cam)));
     let renderWallFlag = true;
@@ -359,7 +391,7 @@ Wall.prototype.checkOnScreenVisibility = function (cam) {
     return renderWallFlag;
 };
 
-Wall.prototype.checkOrientationVisibility = function (cam) {
+WallContext.prototype.checkOrientationVisibility = function (cam) {
     let p1 = this.points[0].position;
     let p2 = this.points[1].position;
     let p3 = this.points[2].position;
