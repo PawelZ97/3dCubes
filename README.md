@@ -1,6 +1,8 @@
 # 3dCubes
 Basics of 3d graphics - Javascript
 
+[Try it](https://pawelz97.github.io/3dCubes/)
+
 ## Controls
 WSAD - move
 
